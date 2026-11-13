@@ -66,6 +66,15 @@ async function exerciseVerification(request, base, f) {
   expect((await request.post(`${base}/api/auth/verify`, { headers: headers(a), data: { challengeToken: challenge.challengeToken, captchaToken: 'valid' } })).status()).toBe(410);
   const profile = await (await request.get(`${base}/api/profile`, { headers: headers(a) })).json();
   expect(profile.verified).toBe(true); expect(profile.robloxUsername).toBe('TestUser');
+  const returning = await guest(request, base);
+  const returningChallenge = await (await request.post(`${base}/api/auth/challenge`, { headers: headers(returning), data: { username: 'TestUser', captchaToken: 'valid' } })).json();
+  f.descriptions.set(f.id, returningChallenge.phrase);
+  const signedIn = await request.post(`${base}/api/auth/verify`, { headers: headers(returning), data: { challengeToken: returningChallenge.challengeToken, captchaToken: 'valid' } });
+  expect(signedIn.status()).toBe(200);
+  expect(await signedIn.json()).toEqual({ verified: true, robloxUsername: 'TestUser' });
+  // Both sessions must resolve to the same saved profile, without issuing another recovery code.
+  await request.put(`${base}/api/profile`, { headers: headers(returning), data: { name: 'Returning member', username: '' } });
+  expect((await (await request.get(`${base}/api/profile`, { headers: headers(a) })).json()).name).toBe('Returning member');
   const made = await request.post(`${base}/api/servers`, { headers: headers(b), data: { name: 'Before recovery', image: 'cc', max: 10, visibility: 'private', placeId: '123456' } });
   const server = (await made.json()).server;
   expect(server.placeId).toBe('123456');
@@ -123,6 +132,18 @@ test('verification and recovery screens work with synthetic Roblox and CAPTCHA p
     await page.getByRole('link', { name: /Continue to Home/ }).click();
     await expect(page.locator('.home-guest')).toHaveText('VERIFIED');
     await expect(page.locator('#homeSubtitle')).toContainText('@TestUser');
+    await page.goto(`${server.url}/login`);
+    await expect(page.getByRole('heading', { name: 'You’re already signed in' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your account', exact: true })).toBeVisible();
+    await expect(page.locator('#verifiedName')).toHaveText('@TestUser');
+    await expect(page.locator('#verifyStepOne')).toBeHidden();
+    await expect(page.locator('#recoveryResult')).toBeHidden();
+    await expect(page.locator('#newRecoveryCode')).toHaveText('');
+    // Verified members can still edit their display name without starting verification again.
+    await page.goto(`${server.url}/login?guest=1`);
+    await expect(page.getByLabel('Display name')).toBeVisible();
+    await page.getByRole('button', { name: 'Back to verification' }).click();
+    await expect(page.getByRole('heading', { name: 'You’re already signed in' })).toBeVisible();
     second = await browser.newContext(); const other = await second.newPage();
     await other.route('https://challenges.cloudflare.com/turnstile/v0/api.js*', route => route.fulfill({ contentType: 'text/javascript', body: widget }));
     await other.goto(`${server.url}/login`);

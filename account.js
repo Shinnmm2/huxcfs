@@ -17,7 +17,7 @@
       });
     } catch (_) { throw new Error('Could not connect to the server. Please try again.'); }
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Could not connect to the server.');
+    if (!response.ok) throw Object.assign(new Error(data.error || 'Could not connect to the server.'), { status: response.status });
     return data;
   }
   async function ensureGuest() {
@@ -28,20 +28,21 @@
     catch { return { name: '', username: '' }; }
   }
   function render() {
-    $('#accountMode').innerHTML = `<i></i> ${mode === 'live' ? 'CONNECTED' : mode === 'demo' ? 'DEMO MODE' : mode === 'offline' ? 'OFFLINE' : 'CONNECTING'}`;
+    $('#accountMode').innerHTML = `<i></i> ${mode === 'live' ? 'CONNECTED' : mode === 'demo' ? 'DEMO MODE' : mode === 'offline' ? 'OFFLINE' : mode === 'session' ? 'SESSION EXPIRED' : 'CONNECTING'}`;
     if (document.body.dataset.page === 'home') {
       const name = profile.name || profile.robloxUsername || '';
       $('#homeAvatar').textContent = name ? name[0].toUpperCase() : '?';
       $('#welcomeTitle').textContent = name ? `Welcome back, ${name}.` : 'Welcome to TheCondo.';
       $('.home-guest').textContent = profile.verified ? 'VERIFIED' : 'GUEST';
       const username = profile.verified ? profile.robloxUsername : profile.username;
-      $('#homeSubtitle').textContent = mode === 'offline' ? 'Your profile is unavailable while the backend is offline.' : username ? `Playing as @${username}. Find a server and make yourself at home.` : 'Your place to meet up and find your next server.';
+      $('#homeSubtitle').textContent = mode === 'session' ? 'Your saved session was rejected. Open your profile to sign in again.' : mode === 'offline' ? 'Your profile is unavailable while the backend is offline.' : username ? `Playing as @${username}. Find a server and make yourself at home.` : 'Your place to meet up and find your next server.';
     } else {
       $('#guestName').value = profile.name || '';
       $('#guestUsername').value = profile.username || '';
       $('#saveGuest').disabled = mode !== 'live' && mode !== 'demo';
       $('#accountError').textContent = mode === 'offline' ? 'The backend is unavailable. Please try again later.' : '';
       $('#testModeNotice').hidden = !(verification.enabled && verification.testMode);
+      $('#sessionNotice').hidden = mode !== 'session';
     }
   }
   async function boot() {
@@ -53,11 +54,17 @@
         const config = await response.json();
         if (config.service !== 'condo-api') throw new Error('Backend unavailable');
         mode = 'live'; verification = config.verification || { enabled: false };
-        profile = token ? await api('/api/profile') : { name: '', username: '' };
+        if (token) {
+          try { profile = await api('/api/profile'); }
+          catch (error) { if (error.status === 401) mode = 'session'; else throw error; }
+        } else profile = { name: '', username: '' };
       }
     } catch (_) { mode = 'offline'; verification = { enabled: false }; }
     render();
-    if (document.body.dataset.page === 'login') show(view);
+    if (document.body.dataset.page === 'login') {
+      if (profile.verified && view !== 'guest') success(profile, true);
+      else show(view);
+    }
   }
   function loadTurnstile() {
     if (window.turnstile) return Promise.resolve();
@@ -76,17 +83,19 @@
     button.textContent = !verification.enabled ? 'Verification unavailable' : !captchaToken ? 'Complete the CAPTCHA' : view === 'one' ? 'Generate verification phrase' : view === 'two' ? 'Verify account' : 'Sign in with recovery code';
   }
   async function show(next) {
+    if (profile.verified && !['success', 'guest'].includes(next)) { success(profile, true); return; }
     const sequence = ++viewSequence;
     view = next; $('#authError').textContent = ''; captchaToken = '';
     if (widget !== null && window.turnstile) { try { window.turnstile.remove(widget); } catch (_) {} widget = null; }
-    for (const [name, selector] of Object.entries({ one:'#verifyStepOne', two:'#verifyStepTwo', recovery:'#recoverySection', success:'#verifiedSection', guest:'#guestSection' })) $(selector).hidden = name !== view;
+    for (const [name, selector] of Object.entries({ one:'#verifyStepOne', two:'#verifyStepTwo', recovery:'#recoverySection', success:'#verifiedSection', guest:'#guestSection' })) $(selector).hidden = mode === 'session' || name !== view;
+    if (mode === 'session') return;
     $('#progressOne').classList.toggle('active', ['one','two','success'].includes(view));
     $('#progressTwo').classList.toggle('active', ['two','success'].includes(view));
     $('#progressThree').classList.toggle('active', view === 'success');
     const container = view === 'one' ? $('#captchaOne') : view === 'two' ? $('#captchaTwo') : view === 'recovery' ? $('#captchaRecovery') : null;
     updateButton();
     if (!container) return;
-    if (!verification.enabled) { container.textContent = mode === 'connecting' ? 'Checking verification availability…' : 'Roblox verification is unavailable until CAPTCHA is configured.'; return; }
+    if (!verification.enabled) { container.textContent = mode === 'connecting' ? 'Checking verification availability…' : mode === 'offline' ? 'The backend is unavailable. Please try again later.' : mode === 'demo' ? 'Connect the backend to use Roblox verification.' : 'Roblox verification is unavailable until CAPTCHA is configured.'; return; }
     container.textContent = 'Loading CAPTCHA…';
     try {
       await loadTurnstile();
@@ -105,11 +114,36 @@
     try { await navigator.clipboard.writeText(value); button.textContent = 'Copied!'; setTimeout(() => { button.textContent = 'Copy'; }, 1800); }
     catch (_) { $('#authError').textContent = 'Copy the text manually.'; }
   }
-  function success(result) {
-    clearInterval(timer); $('#verifiedName').textContent = '@' + result.robloxUsername;
+  function success(result, alreadySignedIn = false) {
+    profile = { ...profile, verified: true, robloxUsername: result.robloxUsername };
+    clearInterval(timer); challenge = null;
+    $('.verification-heading h1').textContent = 'Your account';
+    $('.verification-heading > p').textContent = 'You’re signed in with your verified Roblox account.';
+    $('#verifiedTitle').textContent = alreadySignedIn ? 'You’re already signed in' : result.recoveryCode ? 'Account verified!' : 'Welcome back!';
+    $('#verifiedDescription').textContent = alreadySignedIn ? 'Your Roblox account is verified. Continue to your home page.' : 'You can remove the phrase from your Roblox profile now.';
+    $('#verifiedName').textContent = '@' + result.robloxUsername;
     $('#recoveryResult').hidden = !result.recoveryCode;
     $('#newRecoveryCode').textContent = result.recoveryCode || '';
     show('success');
+  }
+  const sessionNotice = $('#sessionNotice');
+  if (sessionNotice) {
+    $('#retrySession').addEventListener('click', () => location.reload());
+    $('#newSession').addEventListener('click', () => {
+      try {
+        // Preserve the rejected token before replacing it; it may work again if the database is restored.
+        const current = localStorage.getItem(tokenKey);
+        if (current && current === token) {
+          const backupKey = tokenKey + ':saved-sessions';
+          const backups = JSON.parse(localStorage.getItem(backupKey) || '[]');
+          if (!Array.isArray(backups)) throw new Error('Invalid session backup');
+          if (!backups.includes(current)) backups.push(current);
+          localStorage.setItem(backupKey, JSON.stringify(backups));
+          localStorage.removeItem(tokenKey);
+        }
+        location.reload();
+      } catch (_) { $('#sessionError').textContent = 'Could not save your previous session. Please try a private tab.'; }
+    });
   }
   const usernameForm = $('#usernameForm');
   if (usernameForm) {
