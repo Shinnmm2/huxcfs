@@ -68,7 +68,15 @@ The supplied `app.yaml` is for testing: `DB_TLS_MODE=unverified` encrypts databa
 
 <!-- coderabbit-ai-generated-section:v1:ac07d481c03580e3ba739f16bc7a52074afead6bafb9fc859a45491b285142ac -->
 
-When creating a listing, enter a public Roblox game URL or Place ID. To change it later, open My servers and choose Edit Roblox game. The Join dialog links to the Roblox game page and offers a Web Play beta link. Roblox controls Web Play access and browser support; its creator beta is limited to eligible creators and testers. A listing links to an experience, not a particular running Roblox server, and unlisted listings are not private Roblox servers.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:8b8316b938523c113d89589e9b032d22bd7fd576017845e055c7ef06997369eb -->
+
+Use the Create page at `/create` (or `create.html` on GitHub Pages) to choose a listing image, visibility, displayed player limit, and an optional public Roblox game URL or Place ID. To change the link later, open My servers and choose Edit Roblox game. The selected image and displayed limit do not change the Roblox game. The Join dialog links to the Roblox game page and offers a Web Play beta link. Roblox controls Web Play access and browser support; its creator beta is limited to eligible creators and testers. A listing links to an experience, not a particular running Roblox server, and unlisted listings are not private Roblox servers.
+
+Automatic `.rbxl` uploading, publishing, and Roblox server provisioning are not implemented. Publish the file to an experience using Roblox Studio and enter its Place ID or URL when creating a listing.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 Guest sessions, anonymous server creation, and unlisted links are not a substitute for access controls, moderation, rate limiting, or abuse protection. Add those controls before opening the backend to untrusted traffic.
 

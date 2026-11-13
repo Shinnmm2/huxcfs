@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#130c10"><title>Create · TheCondo</title>
+  <link rel="stylesheet" href="styles.css"><script src="config.js" defer></script><script src="create.js" defer></script>
+</head>
+<body>
+<header class="header">
+  <a class="brand" href="home.html"><span class="brand-icon">♥</span><span>The<span class="brand-accent">Condo</span><small>SERVER</small></span></a>
+  <nav class="nav" aria-label="Main navigation"><a href="home.html"><span>⌂</span> Home</a><a href="./"><span>▦</span> Servers</a><a class="nav-active" href="create.html" aria-current="page"><span>＋</span> Create</a></nav>
+  <div class="header-right"><span class="demo-label" id="createMode"><i></i> CONNECTING</span><a class="signin-link" href="login.html">Your profile ↗</a></div>
+</header>
+<main class="create-page">
+  <div class="eyebrow"><span></span> MAKE IT YOURS</div>
+  <h1>Create a listing</h1>
+  <p class="create-lead">Choose a name and image, then link your Roblox game.</p>
+  <p class="verification-test" id="createDemoNotice" hidden>Demo listings are saved only in this browser.</p>
+  <form id="createPageForm" class="panel create-card">
+    <div class="create-status"><span>My listings</span><strong id="listingCount">—</strong></div>
+    <label class="field" for="createName">Server name</label>
+    <input class="form-input" id="createName" name="name" placeholder="e.g. Chill hangout" minlength="2" maxlength="32" required>
+    <p class="create-hint">2–32 characters. Public listings are visible to everyone.</p>
+    <fieldset class="create-maps"><legend>Map image</legend>
+      <label class="map-choice"><input type="radio" name="map" value="cc" checked><span><img src="assets/cc.webp" alt=""><strong>Cuarentena Chill</strong></span></label>
+      <label class="map-choice"><input type="radio" name="map" value="slap"><span><img src="assets/slap.webp" alt=""><strong>Slap Royale</strong></span></label>
+    </fieldset>
+    <p class="create-hint">This image is for the listing. The game link determines what players open.</p>
+    <label class="field" for="createGame">Roblox game URL or Place ID <span class="modal-note">(optional)</span></label>
+    <input class="form-input" id="createGame" name="game" placeholder="https://www.roblox.com/games/…" maxlength="512">
+    <p class="create-hint">Publish your game to Roblox first, then add its link here.</p>
+    <label class="field" for="createVisibility">Visibility</label>
+    <select class="form-input" id="createVisibility" name="visibility"><option value="private">Unlisted (share by link)</option><option value="public">Public</option></select>
+    <label class="field" for="createMax">Maximum players shown</label>
+    <select class="form-input" id="createMax" name="max"><option>10</option><option>20</option><option selected>40</option><option>50</option></select>
+    <p class="create-hint">This is displayed on your listing. Roblox controls the actual game server and player limit.</p>
+    <p class="form-error" id="createError" role="alert"></p>
+    <button class="button gold create-submit" type="submit" disabled>Create listing ↗</button>
+    <a class="button create-back" href="./">Back to servers</a>
+  </form>
+</main>
+<nav class="create-mobile-nav" aria-label="Mobile navigation"><a href="./">▦<span>Servers</span></a><a href="home.html">⌂<span>Home</span></a><a class="active" href="create.html" aria-current="page">＋<span>Create</span></a><a href="login.html">♙<span>Profile</span></a></nav>
+</body>
+</html>

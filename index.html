@@ -8,7 +8,7 @@
 <body>
 <header class="header">
   <a class="brand" href="home.html"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11.5 12 4l9 7.5M5.5 10v9h13v-9M9.5 19v-5h5v5"/></svg></span><span>The<span class="brand-accent">Condo</span><small>SERVER</small></span></a>
-  <nav class="nav" aria-label="Main navigation"><a href="home.html"><span>⌂</span> Home</a><a class="nav-active" href="./" aria-current="page"><span>▦</span> Servers</a><button data-action="create-nav"><span>＋</span> Create</button><button data-action="my-servers"><span>▤</span> My servers</button></nav>
+  <nav class="nav" aria-label="Main navigation"><a href="home.html"><span>⌂</span> Home</a><a class="nav-active" href="./" aria-current="page"><span>▦</span> Servers</a><a class="create-nav-link" href="create.html"><span>＋</span> Create</a><button data-action="my-servers"><span>▤</span> My servers</button></nav>
   <div class="header-right"><a class="signin-link" href="login.html?guest=1&amp;next=play">Your profile <span>↗</span></a><span class="demo-label" id="modeLabel"><i></i> CONNECTING</span><button class="header-profile" data-action="profile"><span class="mini-avatar">?</span><span>Guest player</span><span class="chevron">⌄</span></button></div>
 </header>
 <main class="page">
@@ -24,7 +24,7 @@
     <aside class="sidebar">
       <section class="panel profile-panel"><div class="panel-heading"><div><span class="kicker">YOUR PLAYER</span><h2>Your profile</h2></div><button class="text-button" data-action="profile">Edit <span>↗</span></button></div><div class="profile-row"><div class="profile-avatar" id="profileAvatar">?</div><div><div class="profile-name" id="profileName">Guest player <span class="guest-badge">GUEST</span></div><div class="profile-handle" id="profileHandle">No username set</div></div></div><div class="profile-tags"><span>◉ &nbsp; Guest account</span><span>✦ &nbsp; Ready to play</span></div><div class="notice"><span>✦</span><p>Make it yours. Set up your player profile before you jump in.</p></div></section>
       <section class="panel join-panel"><div class="panel-heading"><div><span class="kicker">READY WHEN YOU ARE</span><h2>Join a server</h2></div><span class="panel-icon">↗</span></div><div id="joinContent"></div></section>
-      <section class="private-panel"><div class="private-glow"></div><div class="private-top"><div class="private-icon">✧</div><span>MAKE IT YOURS</span></div><h2>Your server,<br>your rules.</h2><p>Create a private space for you and your friends to hang out.</p><button class="button gold" data-action="create">Create a server <span>↗</span></button><button class="private-link" data-action="my-servers">View my servers <span>→</span></button></section>
+      <section class="private-panel"><div class="private-glow"></div><div class="private-top"><div class="private-icon">✧</div><span>MAKE IT YOURS</span></div><h2>Your server,<br>your rules.</h2><p>Create a private space for you and your friends to hang out.</p><button class="button gold" data-action="create">Create a server <span>↗</span></button><a class="private-link" href="create.html">Open create page <span>→</span></a><button class="private-link" data-action="my-servers">View my servers <span>→</span></button></section>
     </aside>
   </div>
   <footer><div class="footer-brand"><span class="footer-mark">⌂</span> TheCondo <span>•</span> A place to play, together.</div><div>Made for the community <span class="footer-heart">♥</span></div></footer>

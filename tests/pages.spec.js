@@ -10,6 +10,8 @@ test.beforeAll(async () => {
     ['/huxcfs/', ['index.html', 'text/html']],
     ['/huxcfs/app.js', ['app.js', 'text/javascript']],
     ['/huxcfs/account.js', ['account.js', 'text/javascript']],
+    ['/huxcfs/create.html', ['create.html', 'text/html']],
+    ['/huxcfs/create.js', ['create.js', 'text/javascript']],
     ['/huxcfs/home.html', ['home.html', 'text/html']],
     ['/huxcfs/login.html', ['login.html', 'text/html']],
     ['/huxcfs/config.js', ['config.js', 'text/javascript']],
@@ -61,4 +63,16 @@ test('guest pages and server ID navigation work under the Pages project path', a
   await page.getByRole('button', { name: /Find/ }).click();
   await expect(page).toHaveURL(`${origin}/huxcfs/?serverid=general`);
   await expect(page.locator('#joinContent')).toContainText('General Server');
+});
+
+test('create page saves a demo listing under the Pages project path', async ({ page }) => {
+  await page.goto(`${origin}/huxcfs/create.html`);
+  await expect(page.locator('#createMode')).toContainText('DEMO MODE');
+  await expect(page.locator('#createDemoNotice')).toBeVisible();
+  await page.getByLabel('Server name').fill('Pages hangout');
+  await page.getByLabel('Slap Royale').check();
+  await page.getByLabel(/Roblox game URL/).fill('123456');
+  await page.getByRole('button', { name: /Create listing/ }).click();
+  await expect(page.locator('#joinContent')).toContainText('Pages hangout');
+  await expect(page.locator('#joinContent')).toContainText('Slap Royale');
 });
