@@ -30,7 +30,7 @@ test('PostgreSQL persists data and enforces quotas across instances', async ({ r
     const guest = await (await request.post(`${a.url}/api/guests`)).json();
     const headers = { Authorization: `Bearer ${guest.token}` };
     expect((await request.put(`${a.url}/api/profile`, { headers, data: { name: 'Postgres Guest', username: 'test' } })).status()).toBe(200);
-    const responses = await Promise.all(Array.from({ length: 14 }, (_, i) => request.post(`${i % 2 ? a.url : b.url}/api/servers`, { headers, data: { name: `Server ${i}`, image: 'cc', max: 10, visibility: 'private' } })));
+    const responses = await Promise.all(Array.from({ length: 14 }, (_, i) => request.post(`${i % 2 ? a.url : b.url}/api/servers`, { headers, data: { name: `Server ${i}`, image: 'cc', max: 10, visibility: 'private', placeId: '123456' } })));
     expect(responses.filter(res => res.status() === 201)).toHaveLength(10);
     expect(responses.filter(res => res.status() === 409)).toHaveLength(4);
     await stopServer(a); a = null;
@@ -38,6 +38,9 @@ test('PostgreSQL persists data and enforces quotas across instances', async ({ r
     expect(await (await request.get(`${a.url}/api/profile`, { headers })).json()).toEqual({ name: 'Postgres Guest', username: 'test' });
     const mine = await (await request.get(`${a.url}/api/servers/mine`, { headers })).json();
     expect(mine.servers).toHaveLength(10);
+    expect(mine.servers.every(server => server.placeId === '123456')).toBe(true);
+    expect((await request.put(`${a.url}/api/servers/${mine.servers[0].id}/roblox`, { headers, data: { placeId: '987654' } })).status()).toBe(200);
+    expect((await (await request.get(`${b.url}/api/servers/${mine.servers[0].id}`)).json()).server.placeId).toBe('987654');
     for (const server of mine.servers) expect((await request.delete(`${a.url}/api/servers/${server.id}`, { headers })).status()).toBe(200);
   } finally { await Promise.all([stopServer(a), stopServer(b)]); }
 });

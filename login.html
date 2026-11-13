@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#130c10"><title>Sign in · TheCondo</title>
+  <link rel="stylesheet" href="styles.css"><script src="config.js" defer></script><script src="account.js" defer></script>
+</head>
+<body data-page="login">
+<header class="header">
+  <a class="brand" href="home.html"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.2 4.4 13a5.1 5.1 0 0 1 7.2-7.2l.4.4.4-.4a5.1 5.1 0 0 1 7.2 7.2z"/></svg></span><span>The<span class="brand-accent">Condo</span><small>SERVER</small></span></a>
+  <nav class="nav" aria-label="Main navigation"><a href="home.html"><span>⌂</span> Home</a><a href="./"><span>▦</span> Servers</a></nav>
+  <div class="header-right"><span class="demo-label" id="accountMode"><i></i> CONNECTING</span><a class="signin-link" href="./">Back to play <span>↗</span></a></div>
+</header>
+<main class="verification-page">
+  <div class="verification-heading"><h1>Verify your account</h1><p>No password. Paste a short phrase in your Roblox profile description to prove the account is yours.</p><div class="verification-tags"><span>No password</span><span>Public profile</span><span>Guest access</span></div></div>
+  <div class="verification-progress" aria-hidden="true"><span class="active" id="progressOne"></span><span id="progressTwo"></span><span id="progressThree"></span></div>
+  <div class="verification-test" id="testModeNotice" hidden>Test CAPTCHA is enabled for this preview.</div>
+  <p class="verification-error" id="authError" role="alert"></p>
+  <section class="panel verification-card" id="verifyStepOne" aria-labelledby="stepOneTitle">
+    <div class="verification-card-head"><h2 id="stepOneTitle">Your username</h2><span>STEP 1 / 2</span></div>
+    <form id="usernameForm"><label class="sr-only" for="robloxUsername">Roblox username</label><input class="form-input verification-input" id="robloxUsername" placeholder="e.g. Builderman" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username" spellcheck="false" required><p class="verification-hint">We only read your public profile. We never ask for your password.</p><div class="captcha-wrap" id="captchaOne"><span class="captcha-placeholder">Checking verification availability…</span></div><button class="button gold verification-button" id="challengeButton" type="submit" disabled>Complete the CAPTCHA</button></form>
+    <a class="button verification-button verification-secondary" href="./">Back to Play</a>
+    <button class="verification-link" type="button" id="showRecovery">Have a recovery code? Sign in with it</button>
+    <button class="verification-link quiet" type="button" id="showGuest">Continue as guest</button>
+  </section>
+  <section class="panel verification-card" id="verifyStepTwo" aria-labelledby="stepTwoTitle" hidden>
+    <div class="verification-card-head"><h2 id="stepTwoTitle">Paste the phrase in your About</h2><span>STEP 2 / 2</span></div>
+    <div class="verification-user"><div class="verification-user-avatar" id="verifyAvatar">?</div><div><strong id="verifyUsername"></strong><a id="verifyProfileLink" target="_blank" rel="noopener noreferrer">Open profile ↗</a></div></div>
+    <div class="phrase-head"><span>YOUR VERIFICATION PHRASE</span><span id="phraseTimer"></span></div><div class="phrase-box"><strong id="verificationPhrase"></strong><button class="button" type="button" id="copyPhrase">Copy</button></div>
+    <div class="phrase-tools"><span>The site shows #### instead of it?</span><button type="button" id="newPhrase">↻ &nbsp; New phrase</button></div>
+    <ol class="verification-instructions"><li>Copy the phrase above.</li><li>Open your <strong>Profile → About</strong> and paste it. You can remove it after verifying.</li><li>Save your profile, then press <strong>Verify account</strong>.</li></ol>
+    <div class="captcha-wrap" id="captchaTwo"><span class="captcha-placeholder">Loading CAPTCHA…</span></div><button class="button gold verification-button" type="button" id="verifyButton" disabled>Complete the CAPTCHA</button><button class="button verification-button verification-secondary" type="button" id="changeUsername">Change username</button>
+  </section>
+  <section class="panel verification-card" id="recoverySection" aria-labelledby="recoveryTitle" hidden><div class="verification-card-head"><h2 id="recoveryTitle">Recover your account</h2><span>RECOVERY CODE</span></div><label class="sr-only" for="recoveryCode">Recovery code</label><input class="form-input verification-input" id="recoveryCode" placeholder="ABCD-EFGH-JKLM-NPQR" maxlength="24" autocomplete="one-time-code"><p class="verification-hint">Enter your recovery code to sign in. A new code will replace it after use.</p><div class="captcha-wrap" id="captchaRecovery"><span class="captcha-placeholder">Loading CAPTCHA…</span></div><button class="button gold verification-button" type="button" id="recoverButton" disabled>Complete the CAPTCHA</button><button class="button verification-button verification-secondary" type="button" id="backToVerify">Verify with a phrase instead</button></section>
+  <section class="panel verification-card verification-success" id="verifiedSection" aria-labelledby="verifiedTitle" hidden><div class="verified-icon">✓</div><h2 id="verifiedTitle">Account verified!</h2><p id="verifiedName"></p><p>You can remove the phrase from your Roblox profile now.</p><div class="recovery-box" id="recoveryResult" hidden><span>YOUR RECOVERY CODE — SAVE IT NOW</span><strong id="newRecoveryCode"></strong><button class="button" type="button" id="copyRecovery">Copy</button><p>This code is shown only once. Anyone with it can sign in to your account.</p></div><a class="button gold verification-button" href="home.html">Continue to Home ↗</a></section>
+  <section class="panel verification-card" id="guestSection" aria-labelledby="guestTitle" hidden><div class="verification-card-head"><h2 id="guestTitle">Continue as a guest</h2><span>GUEST</span></div><p class="account-description">Choose a name for your profile. Your username does not verify a Roblox account.</p><form id="guestForm"><label class="account-field" for="guestName">Display name <span>REQUIRED</span></label><input class="form-input account-input" id="guestName" name="name" placeholder="What should we call you?" minlength="2" maxlength="24" autocomplete="nickname" required><label class="account-field" for="guestUsername">Username <span>OPTIONAL</span></label><input class="form-input account-input" id="guestUsername" name="username" placeholder="Your username" maxlength="24" autocomplete="off"><p class="form-error" id="accountError" role="alert"></p><button class="button gold verification-button" type="submit" id="saveGuest" disabled>Save and continue ↗</button></form><button class="button verification-button verification-secondary" type="button" id="backFromGuest">Back to verification</button></section>
+  <section class="verification-faq" aria-label="Help"><details><summary>Why a phrase instead of a password?</summary><p>The phrase in your public Roblox profile shows that you can edit it. This site never asks for your Roblox password.</p></details><details><summary>My phrase was replaced with ####</summary><p>Roblox may filter some words. Choose New phrase and try again.</p></details><details><summary>What is the recovery code?</summary><p>Your code lets you sign in again. Each code is used once and replaced with a new one. Keep it private.</p></details><details><summary>It says it can’t find the phrase</summary><p>Save the phrase in the About section of the same Roblox account and try again. Profile updates can take a moment.</p></details></section>
+</main>
+</body></html>

@@ -9,6 +9,9 @@ test.beforeAll(async () => {
   const files = new Map([
     ['/huxcfs/', ['index.html', 'text/html']],
     ['/huxcfs/app.js', ['app.js', 'text/javascript']],
+    ['/huxcfs/account.js', ['account.js', 'text/javascript']],
+    ['/huxcfs/home.html', ['home.html', 'text/html']],
+    ['/huxcfs/login.html', ['login.html', 'text/html']],
     ['/huxcfs/config.js', ['config.js', 'text/javascript']],
     ['/huxcfs/styles.css', ['styles.css', 'text/css']],
     ['/huxcfs/assets/cc.webp', ['assets/cc.webp', 'image/webp']],
@@ -42,4 +45,20 @@ test('Pages bundle works under the repository path, including navigation and sha
   await page.getByRole('link', { name: /Servers/ }).click();
   await expect(page).toHaveURL(`${origin}/huxcfs/`);
   await expect(page.locator('.server-card')).toHaveCount(6);
+});
+
+
+test('guest pages and server ID navigation work under the Pages project path', async ({ page }) => {
+  await page.goto(`${origin}/huxcfs/login.html`);
+  await expect(page.getByRole('button', { name: 'Verification unavailable' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Continue as guest' }).click();
+  await page.getByLabel('Display name').fill('Taylor');
+  await page.locator('#guestUsername').fill('taylor');
+  await page.getByRole('button', { name: /Save and continue/ }).click();
+  await expect(page).toHaveURL(`${origin}/huxcfs/home.html`);
+  await expect(page.getByRole('heading', { name: 'Welcome back, Taylor.' })).toBeVisible();
+  await page.getByLabel('Server ID').fill('general');
+  await page.getByRole('button', { name: /Find/ }).click();
+  await expect(page).toHaveURL(`${origin}/huxcfs/?serverid=general`);
+  await expect(page.locator('#joinContent')).toContainText('General Server');
 });

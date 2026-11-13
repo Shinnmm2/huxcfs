@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#130c10"><title>Home · TheCondo</title>
+  <link rel="stylesheet" href="styles.css"><script src="config.js" defer></script><script src="account.js" defer></script>
+</head>
+<body data-page="home">
+<header class="header">
+  <a class="brand" href="home.html"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11.5 12 4l9 7.5M5.5 10v9h13v-9M9.5 19v-5h5v5"/></svg></span><span>The<span class="brand-accent">Condo</span><small>SERVER</small></span></a>
+  <nav class="nav" aria-label="Main navigation"><a class="nav-active" href="home.html" aria-current="page"><span>⌂</span> Home</a><a href="./"><span>▦</span> Servers</a></nav>
+  <div class="header-right"><span class="demo-label" id="accountMode"><i></i> CONNECTING</span><a class="signin-link" href="login.html">Your profile <span>↗</span></a></div>
+</header>
+<main class="page home-page">
+  <div class="eyebrow"><span></span> YOUR HOME BASE</div>
+  <section class="home-hero" aria-labelledby="welcomeTitle">
+    <div class="hero-orb hero-orb-one"></div><div class="hero-orb hero-orb-two"></div>
+    <div class="home-avatar" id="homeAvatar">?</div>
+    <div class="home-hero-content"><div class="hero-topline">GOOD TO HAVE YOU HERE <span class="home-guest">GUEST</span></div><h1 id="welcomeTitle">Welcome to <em>TheCondo.</em></h1><p id="homeSubtitle">Your place to meet up and find your next server.</p><div class="hero-buttons"><a class="button gold" href="./">Explore servers <span>↗</span></a><a class="button" href="login.html?guest=1&amp;next=home">Edit your profile</a></div></div>
+    <div class="hero-emblem" aria-hidden="true">✳</div>
+  </section>
+  <div class="home-grid">
+    <section class="panel home-friends" aria-labelledby="friendsTitle"><div class="section-heading"><div><span class="kicker">BETTER TOGETHER</span><h2 id="friendsTitle">Your friends</h2><p>Your people, all in one place.</p></div><span class="panel-icon">♡</span></div><div class="friends-empty"><div class="friends-illustration" aria-hidden="true"><span>✦</span><span>♡</span><span>✦</span></div><h3>Good times are better together.</h3><p>Friends are not available yet.</p><a class="button" href="login.html">About your account <span>↗</span></a></div></section>
+    <aside class="home-side">
+      <section class="panel home-quick"><div class="panel-heading"><div><span class="kicker">HAVE AN INVITE?</span><h2>Find a server</h2></div><span class="panel-icon">↗</span></div><p>Enter a server ID to open its listing.</p><form id="findServerForm" class="home-find"><label class="sr-only" for="homeServerId">Server ID</label><input class="form-input" id="homeServerId" maxlength="64" placeholder="Paste a server ID" required><button class="button gold" type="submit">Find <span>→</span></button></form><p class="form-error" id="homeError" role="alert"></p></section>
+      <section class="home-explore"><div class="home-explore-icon">✧</div><span class="kicker">READY TO DISCOVER?</span><h2>There’s a place<br>for you here.</h2><p>Browse the community and find your kind of server.</p><a class="button gold" href="./">Browse servers <span>↗</span></a></section>
+    </aside>
+  </div>
+  <footer><div class="footer-brand"><span class="footer-mark">⌂</span> TheCondo <span>•</span> A place to play, together.</div><div>Made for the community <span class="footer-heart">♥</span></div></footer>
+</main>
+</body></html>

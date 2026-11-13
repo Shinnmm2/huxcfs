@@ -4,7 +4,7 @@ const path = require('node:path');
 const { createBackend } = require('./backend');
 const root = __dirname;
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp' };
-const allowed = new Set(['index.html', 'styles.css', 'app.js', 'config.js', 'assets/cc.webp', 'assets/slap.webp']);
+const allowed = new Set(['index.html', 'home.html', 'login.html', 'styles.css', 'app.js', 'account.js', 'config.js', 'assets/cc.webp', 'assets/slap.webp']);
 function postgresConfig(env) {
   const configured = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD', 'DB_TLS_MODE', 'DB_CA_CERT'].some(key => !!env[key]);
   if (!configured) return null;
@@ -26,7 +26,7 @@ const server = http.createServer(async (req, res) => {
   try { url = new URL(req.url, 'http://localhost'); pathname = decodeURIComponent(url.pathname); }
   catch { res.writeHead(400).end('Bad request'); return; }
   if (await backend.handle(req, res, url)) return;
-  const relative = pathname === '/' || pathname === '/play' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const relative = pathname === '/' || pathname === '/play' ? 'index.html' : pathname === '/home' ? 'home.html' : pathname === '/login' ? 'login.html' : pathname.replace(/^\/+/, '');
   if (!allowed.has(relative)) { res.writeHead(404).end('Not found'); return; }
   fs.readFile(path.resolve(root, relative), (error, data) => {
     if (error) { res.writeHead(404).end('Not found'); return; }

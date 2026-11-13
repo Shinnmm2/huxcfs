@@ -9,6 +9,21 @@ const samples = [
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
+function parsePlaceId(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  if (/^[1-9][0-9]{0,19}$/.test(input)) return input;
+  try {
+    const url = new URL(input);
+    const safeUrl = url.protocol === 'https:' && !url.username && !url.password && !url.port;
+    const match = /^\/games\/([1-9][0-9]{0,19})(?:\/[^/]*)?\/?$/.exec(url.pathname);
+    if (safeUrl && ['www.roblox.com', 'roblox.com'].includes(url.hostname) && match && ![...url.searchParams.keys()].some(key => /^(privateServerLinkCode|linkCode)$/i.test(key))) return match[1];
+    const params = [...url.searchParams.entries()];
+    if (safeUrl && url.hostname === 'play.roblox.com' && url.pathname === '/games/start' && params.length === 1 && params[0][0] === 'placeId' && /^[1-9][0-9]{0,19}$/.test(params[0][1])) return params[0][1];
+  } catch (_) {}
+  throw new Error('Enter a public Roblox game URL or a numeric Place ID.');
+}
+
 let mine = read('condo-servers', []);
 let profile = read('condo-profile', {name:'',username:''});
 let filter = 'all', query = '', selected = null;
@@ -49,10 +64,11 @@ function render() {
     const avatars = Array.from({length:Math.min(s.count,4)},(_,n)=>`<span class="avatar">${['A','M','J','K'][(n+i)%4]}</span>`).join('');
     return `<article class="server-card ${selected?.id === s.id ? 'selected' : ''}"><div class="map-image" style="background-image:url('assets/${s.image === 'slap' ? 'slap' : 'cc'}.webp')"><span class="type ${s.kind}">${s.kind.toUpperCase()}</span><div class="map-label"><span>◇</span>${escapeHtml(s.map)}</div></div><div class="server-body"><div class="server-title"><h3>${escapeHtml(s.name)}</h3><span class="more">···</span></div><div class="server-meta"><div class="avatars" aria-label="${s.count} players">${avatars}${s.count > 4 ? `<span class="avatar extra">+${s.count-4}</span>` : s.count == null ? '<span class="profile-handle">Players unavailable</span>' : s.count === 0 ? '<span class="profile-handle">Be the first to join</span>' : ''}</div><div class="capacity">${s.count ?? '—'}<span> / ${s.max} players</span></div></div><div class="progress"><span style="width:${Math.min(100,100*s.count/s.max)}%"></span></div><div class="server-actions"><button class="button" data-select="${escapeHtml(s.id)}">${selected?.id === s.id ? 'Selected' : 'Select'}</button><button class="button gold" data-join="${escapeHtml(s.id)}" ${s.count >= s.max ? 'disabled' : ''}>${s.count >= s.max ? 'Full' : 'Join server'} <span>↗</span></button></div></div></article>`;
   }).join('') : `<div class="empty-results"><strong>${mode === 'offline' ? 'Backend unavailable' : mode === 'connecting' ? 'Connecting…' : query || filter !== 'all' ? 'No servers found' : mode === 'live' ? 'No servers yet' : 'No servers found'}</strong>${mode === 'offline' ? 'Check your connection and try refresh.' : mode === 'live' && !query && filter === 'all' ? 'Create a server to get started.' : 'Try another search or choose a different category.'}</div>`;
-  $('#profileName').innerHTML = `${escapeHtml(profile.name || 'Guest player')} <span class="guest-badge">GUEST</span>`;
-  $('#profileAvatar').textContent = profile.name ? profile.name[0].toUpperCase() : '?';
-  $('.mini-avatar').textContent = profile.name ? profile.name[0].toUpperCase() : '?';
-  $('#profileHandle').textContent = profile.username ? '@'+profile.username : 'No username set';
+  $('#profileName').innerHTML = `${escapeHtml(profile.name || profile.robloxUsername || 'Guest player')} <span class="guest-badge">${profile.verified ? 'VERIFIED' : 'GUEST'}</span>`;
+  const displayName = profile.name || profile.robloxUsername || '';
+  $('#profileAvatar').textContent = displayName ? displayName[0].toUpperCase() : '?';
+  $('.mini-avatar').textContent = displayName ? displayName[0].toUpperCase() : '?';
+  $('#profileHandle').textContent = profile.verified ? '@'+profile.robloxUsername+' · Verified' : profile.username ? '@'+profile.username : 'No username set';
   renderJoin();
 }
 function renderJoin() {
@@ -76,21 +92,30 @@ function openProfile() {
   modal(`<div class="modal-head"><h2>Your player</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">Introduce yourself to the community. ${mode === 'live' ? 'Your guest profile is stored by the server; this browser keeps your session.' : 'Your profile is saved in this browser.'}</p><form id="profileForm"><label class="field">Display name<input class="form-input" name="name" value="${escapeHtml(profile.name)}" placeholder="What should we call you?" minlength="2" maxlength="24" required></label><label class="field">Username <span class="modal-note">(optional)</span><input class="form-input" name="username" value="${escapeHtml(profile.username)}" placeholder="Your username" maxlength="24"></label><div class="modal-actions">${button('Cancel','close')}<button class="button gold" type="submit">Save profile</button></div></form>`);
 }
 function openCreate() {
-  modal(`<div class="modal-head"><h2>Create a server</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">Make a space for your people. ${mode === 'live' ? 'Choose whether your listing is public or accessible by link.' : 'Created servers are saved in this browser.'}</p><form id="createForm"><label class="field">Server name<input class="form-input" name="name" placeholder="Give your server a name" minlength="2" maxlength="32" required></label><label class="field">Map<select class="form-input" name="map"><option value="cc">Cuarentena Chill</option><option value="slap">Slap Royale</option></select></label><label class="field">Visibility<select class="form-input" name="visibility"><option value="private">Unlisted (share by link)</option><option value="public">Public</option></select></label><label class="field">Maximum players<select class="form-input" name="max"><option>10</option><option>20</option><option selected>40</option><option>50</option></select></label><div class="modal-actions">${button('Cancel','close')}<button class="button gold" type="submit">Create server</button></div></form>`);
+  modal(`<div class="modal-head"><h2>Create a server</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">Make a space for your people. ${mode === 'live' ? 'Choose whether your listing is public or accessible by link.' : 'Created servers are saved in this browser.'}</p><form id="createForm"><label class="field">Server name<input class="form-input" name="name" placeholder="Give your server a name" minlength="2" maxlength="32" required></label><label class="field">Map<select class="form-input" name="map"><option value="cc">Cuarentena Chill</option><option value="slap">Slap Royale</option></select></label><label class="field">Roblox game URL or Place ID <span class="modal-note">(optional)</span><input class="form-input" name="game" placeholder="https://www.roblox.com/games/…" maxlength="512"></label><p class="modal-copy">Links open the Roblox experience. They do not reserve a specific server.</p><label class="field">Visibility<select class="form-input" name="visibility"><option value="private">Unlisted (share by link)</option><option value="public">Public</option></select></label><label class="field">Maximum players<select class="form-input" name="max"><option>10</option><option>20</option><option selected>40</option><option>50</option></select></label><div class="modal-actions">${button('Cancel','close')}<button class="button gold" type="submit">Create server</button></div></form>`);
 }
 function openMine() {
-  modal(`<div class="modal-head"><h2>My servers</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">${mode === 'live' ? 'Servers created by your guest session appear here.' : 'Your locally created servers appear here.'}</p>${mine.length ? mine.map(s=>`<div class="target-box"><strong>${escapeHtml(s.name)}</strong><p>${escapeHtml(s.map)} · up to ${s.max} players</p><div class="target-controls"><button class="button" data-select-mine="${escapeHtml(s.id)}">Select server</button><button class="button" data-delete="${escapeHtml(s.id)}">Delete</button></div></div>`).join('') : '<div class="empty-target"><div class="empty-icon">✧</div><strong>No servers yet</strong><p>Create your first space to get started.</p></div>'}<div class="modal-actions">${button('Create a server','create','gold')}</div>`);
+  modal(`<div class="modal-head"><h2>My servers</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">${mode === 'live' ? 'Servers created by your guest session appear here.' : 'Your locally created servers appear here.'}</p>${mine.length ? mine.map(s=>`<div class="target-box"><strong>${escapeHtml(s.name)}</strong><p>${escapeHtml(s.map)} · up to ${s.max} players</p><div class="target-controls"><button class="button" data-select-mine="${escapeHtml(s.id)}">Select server</button><button class="button" data-edit-game="${escapeHtml(s.id)}">Edit Roblox game</button><button class="button" data-delete="${escapeHtml(s.id)}">Delete</button></div></div>`).join('') : '<div class="empty-target"><div class="empty-icon">✧</div><strong>No servers yet</strong><p>Create your first space to get started.</p></div>'}<div class="modal-actions">${button('Create a server','create','gold')}</div>`);
+}
+function openGameEdit(server) {
+  modal(`<div class="modal-head"><h2>Edit Roblox game</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">Add a public game URL or Place ID. Leave it blank to remove the link.</p><form id="gameForm"><input type="hidden" name="serverId" value="${escapeHtml(server.id)}"><label class="field">Roblox game URL or Place ID<input class="form-input" name="game" value="${escapeHtml(server.placeId || '')}" placeholder="https://www.roblox.com/games/…" maxlength="512"></label><div class="modal-actions">${button('Cancel','my-servers')}<button class="button gold" type="submit">Save Roblox game</button></div></form>`);
 }
 function openJoin() {
   if (!selected || selected.count >= selected.max) return;
+  const placeId = typeof selected.placeId === 'string' && /^[1-9][0-9]{0,19}$/.test(selected.placeId) ? selected.placeId : '';
+  if (placeId) {
+    modal(`<div class="modal-head"><h2>Ready to join?</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">Open the Roblox experience for <strong>${escapeHtml(selected.name)}</strong>. Roblox chooses the game server.</p><div class="notice"><span>✦</span><p>Web Play is a creator testing beta. Roblox decides who can use it and which browsers are supported.</p></div><div class="modal-actions"><a class="button" href="https://www.roblox.com/games/${placeId}" target="_blank" rel="noopener noreferrer">Open Roblox game</a><a class="button gold" href="https://play.roblox.com/games/start?placeId=${placeId}" target="_blank" rel="noopener noreferrer">Play in browser (beta) ↗</a></div>`);
+    return;
+  }
   modal(`<div class="modal-head"><h2>Ready to join?</h2><button class="close" data-action="close" aria-label="Close">×</button></div><p class="modal-copy">You selected <strong>${escapeHtml(selected.name)}</strong> on ${escapeHtml(selected.map)}.</p><div class="notice"><span>✦</span><p>${mode === 'demo' ? 'This is a demo. Connecting to a live game server requires a backend integration.' : 'A game connection has not been configured yet.'}</p></div><div class="modal-actions">${button('Back','close')}${button(profile.name ? 'Edit player profile' : 'Set up your player','profile','gold')}</div>`);
 }
 document.addEventListener('click', async e => {
-  const sel=e.target.closest('[data-select]'), join=e.target.closest('[data-join]'), mineSelect=e.target.closest('[data-select-mine]'), del=e.target.closest('[data-delete]'), action=e.target.closest('[data-action]'), tab=e.target.closest('[data-filter]');
+  const sel=e.target.closest('[data-select]'), join=e.target.closest('[data-join]'), mineSelect=e.target.closest('[data-select-mine]'), del=e.target.closest('[data-delete]'), edit=e.target.closest('[data-edit-game]'), action=e.target.closest('[data-action]'), tab=e.target.closest('[data-filter]');
   if (tab) { filter=tab.dataset.filter; document.querySelectorAll('[data-filter]').forEach(t=>{t.classList.toggle('active',t===tab);t.setAttribute('aria-selected',String(t===tab));}); render(); }
   if (sel) await select(sel.dataset.select);
   if (join && await select(join.dataset.join)) openJoin();
   if (mineSelect && await select(mineSelect.dataset.selectMine)) closeModal();
+  if (edit) { const server = mine.find(s => s.id === edit.dataset.editGame); if (server) { closeModal(); openGameEdit(server); } }
   if (del) {
     try {
       if (mode === 'live') { await api('/api/servers/' + encodeURIComponent(del.dataset.delete), { method: 'DELETE' }); liveServers = liveServers.filter(s => s.id !== del.dataset.delete); }
@@ -113,7 +138,7 @@ document.addEventListener('click', async e => {
   }
 });
 document.addEventListener('submit', async e => {
-  if (!['profileForm', 'createForm'].includes(e.target.id)) return;
+  if (!['profileForm', 'createForm', 'gameForm'].includes(e.target.id)) return;
   e.preventDefault();
   const form = e.target, data = new FormData(form), submit = form.querySelector('[type=submit]');
   if (submit.disabled) return;
@@ -130,12 +155,28 @@ document.addEventListener('submit', async e => {
     if (form.id === 'createForm') {
       const name = String(data.get('name')).trim(), image = String(data.get('map')), max = Number(data.get('max')), visibility = String(data.get('visibility'));
       if (name.length < 2) throw new Error('Enter a server name with at least 2 characters.');
+      const placeId = parsePlaceId(data.get('game'));
       let server;
-      if (mode === 'live') { await ensureGuest(); server = (await api('/api/servers', { method: 'POST', body: { name, image, max, visibility } })).server; if (visibility === 'public') liveServers.unshift(server); }
-      else { server = { id:'private-'+Date.now().toString(36), name, map:image==='slap'?'Slap Royale':'Cuarentena Chill', image, kind:'community', count:0, max }; localStorage.setItem('condo-servers', JSON.stringify([...mine, server])); }
+      if (mode === 'live') { await ensureGuest(); server = (await api('/api/servers', { method: 'POST', body: { name, image, max, visibility, placeId } })).server; if (visibility === 'public') liveServers.unshift(server); }
+      else { server = { id:'private-'+Date.now().toString(36), name, map:image==='slap'?'Slap Royale':'Cuarentena Chill', image, kind:'community', count:0, max, ...(placeId ? { placeId } : {}) }; localStorage.setItem('condo-servers', JSON.stringify([...mine, server])); }
       mine.unshift(server); selected = server; filter = 'all'; query = ''; $('#search').value = '';
       document.querySelectorAll('[data-filter]').forEach(t => { t.classList.toggle('active', t.dataset.filter === 'all'); t.setAttribute('aria-selected', String(t.dataset.filter === 'all')); });
       if (form.isConnected) closeModal(); render(); toast('Server created');
+    }
+    if (form.id === 'gameForm') {
+      const id = String(data.get('serverId')), placeId = parsePlaceId(data.get('game'));
+      const existing = mine.find(server => server.id === id);
+      if (!existing) throw new Error('Server not found');
+      let updated;
+      if (mode === 'live') updated = (await api('/api/servers/' + encodeURIComponent(id) + '/roblox', { method: 'PUT', body: { placeId } })).server;
+      else {
+        updated = { ...existing }; if (placeId) updated.placeId = placeId; else delete updated.placeId;
+        localStorage.setItem('condo-servers', JSON.stringify(mine.map(server => server.id === id ? updated : server)));
+      }
+      mine = mine.map(server => server.id === id ? updated : server);
+      liveServers = liveServers.map(server => server.id === id ? updated : server);
+      if (selected?.id === id) selected = updated;
+      if (form.isConnected) closeModal(); render(); toast('Roblox game saved');
     }
   } catch (error) { toast(error.message); } finally { submit.disabled = false; }
 });
@@ -153,7 +194,7 @@ async function boot() {
       mode = 'live'; profile = token ? await api('/api/profile') : {name:'',username:''}; await refreshLive();
     }
     const requested = new URLSearchParams(location.search).get('serverid');
-    if (requested) { try { selected = await findServer(requested); } catch (error) { if (error.status !== 404) throw error; } }
+    if (requested) { try { selected = await findServer(requested); if (!selected) toast('Server not found'); } catch (error) { if (error.status === 404) toast('Server not found'); else throw error; } }
   } catch (error) { mode = 'offline'; liveServers = []; mine = []; toast(error.message); }
   render();
 }
