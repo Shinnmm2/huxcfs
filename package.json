@@ -1,1 +1,12 @@
-{"name":"condo-server-browser","version":"1.0.0","private":true,"scripts":{"start":"node server.js","test":"node --test"}}
+{
+  "name": "condo-server-browser",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}
