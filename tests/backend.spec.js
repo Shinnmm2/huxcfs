@@ -19,6 +19,7 @@ async function stop(process) { await new Promise(resolve => { process.once('exit
 
 test('API validates input, protects ownership, and restricts origins', async ({ request }) => {
   expect((await request.get('/api/config')).status()).toBe(200);
+  expect(await (await request.get('/api/health')).json()).toEqual({ status: 'ok' });
   expect((await request.get('/api/servers', { headers: { Origin: 'https://attacker.example' } })).status()).toBe(403);
   const allowed = await request.get('/api/servers', { headers: { Origin: 'https://shinnmm2.github.io' } });
   expect(allowed.headers()['access-control-allow-origin']).toBe('https://shinnmm2.github.io');

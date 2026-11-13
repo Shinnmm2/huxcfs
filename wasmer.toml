@@ -1,0 +1,16 @@
+[package]
+entrypoint = "server"
+
+[dependencies]
+"wasmer/edgejs-quickjs" = "0.1.4"
+
+[fs]
+"/app" = "./_wasmer"
+
+[[command]]
+name = "server"
+module = "wasmer/edgejs-quickjs:edge"
+runner = "wasi"
+
+[command.annotations.wasi]
+main-args = ["/app/server.js"]

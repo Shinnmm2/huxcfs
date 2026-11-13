@@ -1,0 +1,23 @@
+kind: wasmer.io/App.v0
+name: huxcfs-backend-test
+package: .
+env:
+  ALLOWED_ORIGINS: "https://shinnmm2.github.io"
+  # Wasmer's managed database uses a private CA. See README before using this test setting.
+  DB_TLS_MODE: "unverified"
+capabilities:
+  database:
+    engine: postgres
+locality:
+  regions:
+    - fr-roub1
+health_checks:
+  - http:
+      method: get
+      path: /api/health
+      interval: 30s
+      timeout: 10s
+      unhealthy_threshold: 2
+      healthy_threshold: 1
+      expected_status_codes:
+        - 200

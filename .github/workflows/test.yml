@@ -12,6 +12,20 @@ jobs:
   browser-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: condo_test
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: condo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U condo_test -d condo_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -21,6 +35,13 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm test
+        env:
+          TEST_PG_HOST: 127.0.0.1
+          TEST_PG_PORT: 5432
+          TEST_PG_DATABASE: condo_test
+          TEST_PG_USER: condo_test
+          TEST_PG_PASSWORD: local-test-only
+      - run: npm run build:wasmer
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
