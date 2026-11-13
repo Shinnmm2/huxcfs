@@ -9,6 +9,7 @@ test.beforeAll(async () => {
   const files = new Map([
     ['/huxcfs/', ['index.html', 'text/html']],
     ['/huxcfs/app.js', ['app.js', 'text/javascript']],
+    ['/huxcfs/config.js', ['config.js', 'text/javascript']],
     ['/huxcfs/styles.css', ['styles.css', 'text/css']],
     ['/huxcfs/assets/cc.webp', ['assets/cc.webp', 'image/webp']],
     ['/huxcfs/assets/slap.webp', ['assets/slap.webp', 'image/webp']],

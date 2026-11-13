@@ -13,7 +13,7 @@ module.exports = defineConfig({
   },
   webServer: {
     command: 'node server.js',
-    env: { PORT: '4173' },
+    env: { PORT: '4173', DATABASE_PATH: ':memory:', ALLOWED_ORIGINS: 'https://shinnmm2.github.io,http://localhost:4173' },
     url: 'http://127.0.0.1:4173/play',
     reuseExistingServer: false,
     timeout: 30_000,

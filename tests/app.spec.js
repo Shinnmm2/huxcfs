@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+test.beforeEach(async ({ page }) => { await page.route('**/api/config', route => route.fulfill({ status: 404 })); });
+
 test('filters, searches, and selects a server', async ({ page }) => {
   await page.goto('/play');
   await expect(page.locator('.server-card')).toHaveCount(6);
