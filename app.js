@@ -73,7 +73,7 @@ document.addEventListener('click', async e => {
     case 'clear': selected=null; render(); break;
     case 'join-selected': openJoin(); break;
     case 'select-id': { const id=$('#serverId').value.trim(); const found=servers().find(s=>s.id===id); if(found) select(found.id); else toast('No demo server found with that ID'); break; }
-    case 'share': { const url=new URL('/play',location.href); url.searchParams.set('serverid',selected.id); try { await navigator.clipboard.writeText(url.toString()); toast(selected.id.startsWith('private-') ? 'Link copied; this server is saved in this browser' : 'Server link copied'); } catch { toast('Could not copy link'); } break; }
+    case 'share': { const url=new URL('./',location.href); url.searchParams.set('serverid',selected.id); try { await navigator.clipboard.writeText(url.toString()); toast(selected.id.startsWith('private-') ? 'Link copied; this server is saved in this browser' : 'Server link copied'); } catch { toast('Could not copy link'); } break; }
   }
 });
 document.addEventListener('submit', e => {

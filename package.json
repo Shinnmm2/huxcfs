@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "test": "playwright test"
+    "test": "playwright test",
+    "build:pages": "node scripts/build-pages.js",
+    "pretest": "npm run build:pages"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0"
